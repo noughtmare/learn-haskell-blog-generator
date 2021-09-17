@@ -14,16 +14,16 @@ newtype Structure
 newtype Content
   = Content String
 
-type Title
-  = String
+newtype Header
+  = Header String
 
 -- * EDSL
 
-html_ :: Title -> Structure -> Html
-html_ title content =
+html_ :: Header -> Structure -> Html
+html_ (Header header) content =
   Html
     ( el "html"
-      ( el "head" (el "title" (escape title))
+      ( el "head" header
         <> el "body" (getStructureString content)
       )
     )
@@ -95,6 +95,29 @@ render :: Html -> String
 render html =
   case html of
     Html str -> str
+
+
+-- * Header
+
+title_ :: String -> Header
+title_ = Header . el "title" . escape
+
+stylesheet_ :: FilePath -> Header
+stylesheet_ path =
+  Header $ "<link rel=\"stylesheet\" type=\"text/css\" href=\"" <> escape path <> "\">"
+
+meta_ :: String -> String -> Header
+meta_ name content =
+  Header $ "<meta name=\"" <> escape name <> "\" content=\"" <> escape content <> "\">"
+
+instance Semigroup Header where
+  (<>) (Header h1) (Header h2) =
+    Header (h1 <> h2)
+
+instance Monoid Header where
+  mempty = Header ""
+
+
 
 -- * Utilities
 
